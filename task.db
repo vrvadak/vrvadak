@@ -1,0 +1,62 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Oct  2 22:35:15 2024
+
+@author: vinayak
+"""
+
+import sqlite3
+
+# Function to create a connection to SQLite
+def create_connection():
+    conn = sqlite3.connect('tasks.db')
+    return conn
+
+# Function to create the 'tasks' table in the database
+def create_table(conn):
+    # SQL query to create the tasks table
+    query = '''
+    CREATE TABLE IF NOT EXISTS tasks (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        description TEXT,
+        status TEXT NOT NULL,
+        priority TEXT,
+        due_date DATE,
+        category TEXT,
+        recurrence TEXT,
+        comments TEXT,
+        attachment BLOB,
+        progress INTEGER DEFAULT 0,
+        time_spent INTEGER DEFAULT 0
+    )
+    '''
+    # Execute the query and commit changes
+    conn.execute(query)
+    conn.commit()
+
+# Function to add missing columns (in case they are not in the table)
+def add_missing_columns(conn):
+    columns = {
+        "priority": "TEXT",
+        "recurrence": "TEXT",
+        "progress": "INTEGER DEFAULT 0",
+        "time_spent": "INTEGER DEFAULT 0",
+        "due_date": "DATE"
+    }
+    for column, column_type in columns.items():
+        try:
+            conn.execute(f"ALTER TABLE tasks ADD COLUMN {column} {column_type}")
+        except sqlite3.OperationalError:
+            pass
+    conn.commit()
+
+# Main function to create the database and table
+def main():
+    conn = create_connection()
+    create_table(conn)
+    add_missing_columns(conn)
+    conn.close()
+
+if __name__ == "__main__":
+    main()
